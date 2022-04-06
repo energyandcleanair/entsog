@@ -16,9 +16,15 @@ api_req <- function(url, params=list(), limit=-1){
   en_cont <- httr::content(req, as="text", encoding = "UTF-8")
   res <- jsonlite::fromJSON(en_cont)
 
-  if(res$meta$total > res$meta$count * 1.01){ #+2: for some reason, sometimes total is +1 or +2
-    warning(sprintf("More data available (%s/%s). Increase limit or implement a loop here...", res$meta$count, res$meta$total))
-  }
+  res <- tryCatch({
+    if(res$meta$total > res$meta$count * 1.01){ #+2: for some reason, sometimes total is +1 or +2
+      warning(sprintf("More data available (%s/%s). Increase limit or implement a loop here...", res$meta$count, res$meta$total))
+    }
+    res
+  }, error=function(e){
+    warning("May have failed for: ", url, params)
+    return(NULL)
+  })
 
   return(res)
 }
